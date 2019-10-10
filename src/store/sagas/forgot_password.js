@@ -1,10 +1,5 @@
 import {FORGOT_PASSWORD_WATCHER} from '../constants';
-import {
-  forgotPasswordSuccess,
-  forgotPasswordError,
-  setScreenLoaderStart,
-  setScreenLoaderFinish,
-} from '../actions';
+import {forgotPasswordSuccess, forgotPasswordError} from '../actions';
 
 import {put, takeLatest, call} from 'redux-saga/effects';
 import {API_URL, BASE_URL} from 'src/axios/config';
@@ -24,17 +19,14 @@ function* forgotPasswordActionEffect(forgotPasswordAction) {
   console.log('forgotPassword Actions ', forgotPasswordAction);
   let {payload, resolve, reject} = forgotPasswordAction;
   try {
-    yield put(setScreenLoaderStart());
     let response = yield call(forgotPasswordApi, payload);
 
     console.log('forgotPassword response ', response);
-    yield put(setScreenLoaderFinish());
     if (response.meta.status) {
       yield put(forgotPasswordSuccess(response));
     }
   } catch (e) {
     console.log('error =======> ', e);
-    yield put(setScreenLoaderFinish());
     yield put(forgotPasswordError(e.data));
   }
 }

@@ -1,25 +1,22 @@
-import axios from "axios";
+import axios from 'axios';
 import AsyncStorage from '@react-native-community/async-storage';
-
-import { BASE_URL } from "./config";
-import { Constants, showSnackBar, Messages, isNetworkConnected } from "src/utils";
-
+import {BASE_URL} from './config';
+import {Constants, showSnackBar, Messages, isNetworkConnected} from 'src/utils';
 
 const instance = axios.create({
   baseURI: BASE_URL,
   timeout: 10000,
   headers: {
-    "Content-Type": "application/json",
-    Accept: "application/json",
-    "Access-Control-Allow-Origin": "*",
-    AccessControlAllowMethods: "GET, POST, PUT, DELETE, OPTIONS"
-  }
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
+    'Access-Control-Allow-Origin': '*',
+    AccessControlAllowMethods: 'GET, POST, PUT, DELETE, OPTIONS',
+  },
 });
 
 getToken = async () => {
   return await AsyncStorage.getItem(Constants.StorageKey.TOKEN);
-}
-
+};
 
 //instance.defaults.headers.common['Authorization'] = `Bearer ${getToken()}`;
 
@@ -28,30 +25,30 @@ getToken = async () => {
  * Add Authorization header if it exists
  * This configuration applies for all requests
  */
-instance.interceptors.request.use(async (reqConfig) => {
+instance.interceptors.request.use(
+  async reqConfig => {
+    const isInternet = await isNetworkConnected();
 
-  const isInternet = await isNetworkConnected();
+    if (!isInternet)
+      return Promise.reject({
+        response: {
+          status: 111,
+          message: Messages.intenetNotAvailable,
+        },
+      });
 
-  if (!isInternet) return Promise.reject({
-    response: {
-      status: 111,
-      message: Messages.intenetNotAvailable
+    let accessToken = await AsyncStorage.getItem(Constants.StorageKey.TOKEN);
+    if (accessToken) {
+      reqConfig.headers = {
+        Authorization: `Bearer ${accessToken}`,
+      };
     }
-  });
-
-  let accessToken = await AsyncStorage.getItem(Constants.StorageKey.TOKEN);
-  if (accessToken) {
-    reqConfig.headers = {
-      Authorization: `Bearer ${accessToken}`
-    };
-  }
-  console.log("Req", reqConfig);
-  return reqConfig;
-
-},
+    console.log('Req', reqConfig);
+    return reqConfig;
+  },
   error => {
     return Promise.reject(error);
-  }
+  },
 );
 
 /**
@@ -61,31 +58,31 @@ instance.interceptors.request.use(async (reqConfig) => {
  */
 instance.interceptors.response.use(
   response => {
-    console.log("req response", response);
-    return response.data;
+    console.log('req response', response);
+    return response;
   },
   error => {
-    console.log("req error ", error.response);
+    console.log('req error ', error.response);
     // Do something with response error
-    if (typeof error === "undefined") {
+    if (typeof error === 'undefined') {
       // request cancelled
       // when backend server is not available at all
 
       let serverError = {
         data: {
-          message: Messages.serverError
-        }
+          message: Messages.serverError,
+        },
       };
-      showSnackBar(Messages.serverError)
+      showSnackBar(Messages.serverError);
       return Promise.reject(serverError);
-    } else if (typeof error.response === "undefined") {
+    } else if (typeof error.response === 'undefined') {
       // when request is timeout
       let serverError = {
         data: {
-          message: Messages.serverError
-        }
+          message: Messages.serverError,
+        },
       };
-      showSnackBar(Messages.serverError)
+      showSnackBar(Messages.serverError);
       return Promise.reject(serverError);
     } else if (error.response.status === 401) {
       // apply refresh token logic here instead of redirecting to login
@@ -93,19 +90,17 @@ instance.interceptors.response.use(
       //sessionStorage.clear();
 
       if (error.response.data.meta)
-        showSnackBar(error.response.data.meta.message)
-
+        showSnackBar(error.response.data.meta.message);
     } else if (error.response.status === 111) {
       // internet not connected
 
-      showSnackBar(error.response.message)
-
+      showSnackBar(error.response.message);
     } else {
       if (error.response.data.meta)
-        showSnackBar(error.response.data.meta.message)
+        showSnackBar(error.response.data.meta.message);
     }
     return Promise.reject(error.response);
-  }
+  },
 );
 
 export default instance;

@@ -1,5 +1,12 @@
 import React, {Component} from 'react';
-import {View, Image, StyleSheet, ImageBackground, Alert} from 'react-native';
+import {
+  View,
+  Image,
+  StyleSheet,
+  ImageBackground,
+  Alert,
+  ActivityIndicator,
+} from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import {StackActions, NavigationActions} from 'react-navigation';
 import PasswordHelp from './PasswordHelp';
@@ -96,22 +103,29 @@ export default class Login extends Component {
   }
 
   handleSubmit = () => {
-    fetch('http://40.76.0.8/api/login/', {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
+    const params = {
+      username: this.state.username,
+      password: this.state.password,
+    };
+
+    this.props.authWatcher(
+      params,
+      response => {
+        this.setState({userProfile: response.data});
+        this.saveUser(response.data);
+        this.props.navigation.dispatch(
+          StackActions.reset({
+            index: 0,
+            actions: [
+              NavigationActions.navigate({routeName: Routes.AUTHENTICATED}),
+            ],
+            key: null,
+          }),
+        );
       },
-      body: JSON.stringify({
-        username: this.state.username,
-        password: this.state.password,
-      }),
-    })
-      .then(response => response.json())
-      .then(responseJson => {
-        // console.log("the response", this.state, responseJson);
-        // if the username is wrong
-        if (responseJson.detail === 'Username doesnt exist.') {
+      error => {
+        console.log('error : ', error);
+        if (error.data && error.data.detail === 'Username doesnt exist.') {
           Alert.alert(
             'Alert Title',
             'Username does not exist.',
@@ -122,17 +136,19 @@ export default class Login extends Component {
           );
         } else if (
           //if the username is right but pass is wrong, under 5 attempts
-          responseJson.detail ===
+          error.data &&
+          error.data.detail ===
             'The password you entered does not match our records.Please try again!!' &&
           this.state.attempts < 5
         ) {
-          Alert.alert('Alert Title', responseJson.detail, [{text: 'OK'}], {
+          Alert.alert('Alert Title', error.data.detail, [{text: 'OK'}], {
             cancelable: false,
           });
           this.state.attempts++;
         } else if (
           //if the username is right but pass is wrong, over5 attempts
-          responseJson.detail ===
+          error.data &&
+          error.data.detail ===
             'The password you entered does not match our records.Please try again!!' &&
           this.state.attempts >= 5
         ) {
@@ -146,7 +162,7 @@ export default class Login extends Component {
               },
               {
                 text: 'Change Password',
-                onPress: () => changeSubComponent('PasswordHelp'),
+                onPress: () => this.changeSubComponent('PasswordHelp'),
               },
             ],
             {
@@ -154,30 +170,14 @@ export default class Login extends Component {
             },
           );
           this.state.attempts++;
-        } // if you made it this far, you are in.
-        else {
-          this.setState({userProfile: responseJson});
-          this.saveUser(responseJson);
-          this.props.navigation.dispatch(
-            StackActions.reset({
-              index: 0,
-              actions: [
-                NavigationActions.navigate({routeName: Routes.AUTHENTICATED}),
-              ],
-              key: null,
-            }),
-          );
         }
-      })
-      .catch(error => {
-        console.error(error);
-      });
+      },
+    );
   };
 
   /* LIFECYCLE */
   componentDidMount() {
     this.loadUser();
-    // console.log("component loaded", this.state);
   }
 
   /* COMPONENT */
@@ -192,6 +192,12 @@ export default class Login extends Component {
           />
         </View>
         {this.getSubComponent()}
+        <ActivityIndicator
+          style={{flex: 1}}
+          size="large"
+          color="white"
+          animating={this.props.authReducer.authLoader}
+        />
       </ImageBackground>
     );
   }

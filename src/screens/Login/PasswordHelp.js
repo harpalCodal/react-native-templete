@@ -1,14 +1,14 @@
 // this is a sub-component of Login
 
-import React from "react";
+import React from 'react';
 import {
   Text,
   TextInput,
   View,
   TouchableHighlight,
   StyleSheet,
-  Linking
-} from "react-native";
+  Linking,
+} from 'react-native';
 
 export default class PasswordHelp extends React.Component {
   constructor(props) {
@@ -18,7 +18,7 @@ export default class PasswordHelp extends React.Component {
 
   /* FUNCTIONS */
   handleSubmit() {
-    console.log("submitted");
+    console.log('submitted');
   }
   /* LIFECYCLE */
 
@@ -27,17 +27,30 @@ export default class PasswordHelp extends React.Component {
     return (
       <View style={styles.passwordHelpContainer}>
         <Text
-          style={[styles.text, { fontWeight: "bold", marginTop: -50 }]}
-        >{`RESET YOUR PASSWORD
+          style={[
+            styles.text,
+            {fontWeight: 'bold', marginTop: -50},
+          ]}>{`RESET YOUR PASSWORD
         `}</Text>
 
         <Text style={styles.text}>
           {`We'll send a password reset link to
-your email. Still need help? Contact us at`} </Text><TouchableHighlight onPress={() => Linking.openURL('mailto:apollo-support@fmc.com?subject=Assistance with the Apollo App&body=body')}>
-<Text style={[styles.text, {textDecorationLine: 'underline', marginTop: -3}]}>{`apollo-support@fmc.com
+your email. Still need help? Contact us at`}{' '}
+        </Text>
+        <TouchableHighlight
+          onPress={() =>
+            Linking.openURL(
+              'mailto:apollo-support@fmc.com?subject=Assistance with the Apollo App&body=body',
+            )
+          }>
+          <Text
+            style={[
+              styles.text,
+              {textDecorationLine: 'underline', marginTop: -3},
+            ]}>{`apollo-support@fmc.com
 
 `}</Text>
-</TouchableHighlight>
+        </TouchableHighlight>
         <TextInput
           style={styles.textField}
           placeholder="  EMAIL ADDRESS"
@@ -53,8 +66,7 @@ your email. Still need help? Contact us at`} </Text><TouchableHighlight onPress=
           </Text>
           <Text style={styles.text}> | </Text>
           <TouchableHighlight
-            onPress={() => this.props.changeSubComponent("LoginForm")}
-          >
+            onPress={() => this.props.changeSubComponent('LoginForm')}>
             <Text style={styles.text}>Log In</Text>
           </TouchableHighlight>
         </View>
@@ -65,33 +77,33 @@ your email. Still need help? Contact us at`} </Text><TouchableHighlight onPress=
 const styles = StyleSheet.create({
   passwordHelpContainer: {
     flex: 1,
-    alignItems: "center"
+    alignItems: 'center',
   },
   helpContainer: {
-    flexDirection: "row",
-    justifyContent: "center"
+    flexDirection: 'row',
+    justifyContent: 'center',
   },
   textField: {
-    backgroundColor: "white",
+    backgroundColor: 'white',
     height: 40,
     borderRadius: 5,
     marginBottom: 15,
-    width: "90%"
+    width: '90%',
   },
   button: {
-    width: "90%",
-    backgroundColor: "#1DB677",
+    width: '90%',
+    backgroundColor: '#1DB677',
     borderRadius: 50,
     height: 40,
     marginBottom: 15,
-    justifyContent: "center"
+    justifyContent: 'center',
   },
   buttonText: {
-    textAlign: "center",
-    color: "white"
+    textAlign: 'center',
+    color: 'white',
   },
   text: {
-    color: "white",
-    textAlign: "center"
-  }
+    color: 'white',
+    textAlign: 'center',
+  },
 });

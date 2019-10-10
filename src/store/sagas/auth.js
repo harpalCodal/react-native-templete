@@ -8,8 +8,6 @@ import {
   signupError,
   logoutSuccess,
   logoutError,
-  setScreenLoaderStart,
-  setScreenLoaderFinish,
 } from '../actions';
 
 import {put, takeLatest, call} from 'redux-saga/effects';
@@ -46,25 +44,23 @@ async function logoutApi(authParams) {
 }
 
 function* authActionEffect(loginAction) {
-  console.log('Login Actions ', loginAction);
   let {payload, resolve, reject} = loginAction;
   try {
-    yield put(setScreenLoaderStart());
     let response = yield call(loginApi, payload);
-
     console.log('auth  response ', response);
-    yield put(setScreenLoaderFinish());
-    if (response.meta.status) {
+
+    if (response.status) {
       yield AsyncStorage.setItem(
         Constants.StorageKey.TOKEN,
-        response.data.user.access_token,
+        response.data.token,
       );
       yield put(authSuccess(response.data));
     }
+    resolve(response);
   } catch (e) {
     console.log('error =======> ', e);
-    yield put(setScreenLoaderFinish());
     yield put(authError(e.data));
+    reject(e);
   }
 }
 
@@ -72,10 +68,8 @@ function* signupActionEffect(signupAction) {
   console.log('signup Actions ', signupAction);
   let {payload} = signupAction;
   try {
-    yield put(setScreenLoaderStart());
     let response = yield call(signupApi, payload);
     console.log('signup  response ', response);
-    yield put(setScreenLoaderFinish());
     if (response.meta.status) {
       yield AsyncStorage.setItem(
         Constants.StorageKey.TOKEN,
@@ -88,7 +82,6 @@ function* signupActionEffect(signupAction) {
     }
   } catch (e) {
     console.log('error =======> ', e);
-    yield put(setScreenLoaderFinish());
     yield put(authError(e.data));
   }
 }
@@ -98,12 +91,9 @@ function* logoutActionEffect(actions) {
   let {payload, resolve, reject} = actions;
   try {
     const isInternet = yield isNetworkConnected();
-
-    yield put(setScreenLoaderStart());
     let response = yield call(logoutApi, payload);
 
     console.log('logoutActionEffect  response ', response);
-    yield put(setScreenLoaderFinish());
     if (response.meta.status) {
       yield AsyncStorage.clear();
       yield put(logoutSuccess(response.data));
@@ -113,7 +103,6 @@ function* logoutActionEffect(actions) {
     }
   } catch (e) {
     console.log('error =======> ', e);
-    yield put(setScreenLoaderFinish());
     yield put(logoutError(e.data));
   }
 }
